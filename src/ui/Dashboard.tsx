@@ -1,15 +1,57 @@
+import { useState } from 'react';
 import { BENCH } from '../core/engine';
 import { fmtHf, fmtUsd } from '../core/math';
 import { CHAIN_IDS, chainName } from '../core/types';
 import { isInFlight } from '../core/executor';
 import { Badge, Btn, Card, Empty, Gauge, Icon, Meter, Spark, Stat } from './parts';
 import { headroom } from '../core/policy';
-import { setupDemo } from '../core/scenarios';
+import { crash, restoreSnapshot, setupDemo } from '../core/scenarios';
 import { fmtTime, useEngine } from './store';
 
-export function Dashboard({ go, onOpenTour }: { go: (tab: string) => void; onOpenTour?: () => void }) {
+export function Dashboard({
+  go,
+  onOpenTour,
+  live: _live,
+  setLive,
+}: {
+  go: (tab: string) => void;
+  onOpenTour?: () => void;
+  live?: boolean;
+  setLive?: (v: boolean | ((p: boolean) => boolean)) => void;
+}) {
   const e = useEngine();
   const st = e.state;
+  const [demoRunning, setDemoRunning] = useState(false);
+  const [demoStartTime, setDemoStartTime] = useState(0);
+
+  const handleRunDemo = async () => {
+    if (demoRunning || st.scenario) return;
+    setDemoRunning(true);
+    try {
+      setDemoStartTime(e.world.now());
+      await setupDemo(e);
+      if (setLive) setLive(true);
+      crash(e, 40, 8);
+    } catch (err) {
+      console.error('Run demo error:', err);
+    } finally {
+      setDemoRunning(false);
+    }
+  };
+
+  const handleReset = () => {
+    try {
+      setDemoStartTime(0);
+      if (st.demoSnapshot) {
+        restoreSnapshot(e);
+      } else {
+        void setupDemo(e);
+      }
+    } catch (err) {
+      console.error('Reset error:', err);
+    }
+  };
+
   if (!st.accountAddress || !st.policy) {
     return (
       <div className="stack">
@@ -23,9 +65,10 @@ export function Dashboard({ go, onOpenTour }: { go: (tab: string) => void; onOpe
               first.
             </p>
             <div className="row">
-              <Btn kind="primary" onClick={() => setupDemo(e)}>
-                Launch the demo (one click)
+              <Btn kind="primary" disabled={demoRunning} busy={demoRunning} onClick={handleRunDemo}>
+                Run the demo
               </Btn>
+              <Btn onClick={() => setupDemo(e)}>Launch the demo (setup only)</Btn>
               <Btn onClick={() => go('account')}>Set up manually</Btn>
               {onOpenTour && (
                 <Btn kind="ghost" onClick={onOpenTour}>
@@ -104,10 +147,78 @@ export function Dashboard({ go, onOpenTour }: { go: (tab: string) => void; onOpe
   const worst = loans.reduce((m, r) => Math.min(m, r.d.healthFactor), Infinity);
   const netWorth = rows.reduce((s, r) => s + r.b.USDC + r.pos.suppliedUsdc + r.d.collateralUsd - r.d.debtUsd, 0);
   const wTone = worst < p.healthFactor.trigger ? 'bad' : worst < p.healthFactor.warn ? 'warn' : 'ok';
+
+  const hasLiquidated = st.liquidations.some((l) => l.benchmark && (!demoStartTime || l.time >= demoStartTime));
+  const hasRescued =
+    Object.values(st.sentinel.lastRescueAt).some((t) => t && (!demoStartTime || t >= demoStartTime)) ||
+    st.actions.some((a) => a.rescue && (!demoStartTime || a.time >= demoStartTime));
+  const isCrashing = !!st.scenario || w.chain(42161).wethPrice < 2999;
+
+  let currentStep = 0;
+  let stepCaption = '';
+  if (hasLiquidated) {
+    currentStep = 3;
+    stepCaption = 'Protected loan rescued; unprotected loan liquidated.';
+  } else if (hasRescued) {
+    currentStep = 2;
+    stepCaption = 'Sentinel triggers';
+  } else if (isCrashing || demoRunning) {
+    currentStep = 1;
+    stepCaption = 'Price drops 40%';
+  }
+
   return (
     <div className="stack">
       <div className="dash-hero">
         <h2>An AI wallet that protects your loan, within limits you set.</h2>
+      </div>
+      <div className="demo-bar" data-tour="dashboard-demo">
+        <div className="demo-bar-top">
+          <div className="demo-bar-info">
+            <span className="demo-bar-badge">Demo</span>
+            <strong>One-click liquidation rescue demo</strong>
+            <span className="muted small">Watch sentinel save your loan during a −40% crash</span>
+          </div>
+          <div className="demo-bar-actions">
+            <Btn
+              kind="primary"
+              disabled={demoRunning || !!st.scenario}
+              busy={demoRunning}
+              onClick={handleRunDemo}
+              title="Runs setup, enables Live mode, and crashes ETH by 40% to demonstrate automatic rescue"
+            >
+              Run the demo
+            </Btn>
+            <Btn onClick={handleReset} disabled={demoRunning} title="Reset to initial clean snapshot">
+              Reset
+            </Btn>
+          </div>
+        </div>
+
+        <div className="demo-steps" role="status" aria-label="Demo steps">
+          <div className={`demo-step ${currentStep >= 1 ? 'is-active' : ''} ${currentStep > 1 ? 'is-done' : ''}`}>
+            <span className="demo-step-num">{currentStep > 1 ? '✓' : '1'}</span>
+            <span className="demo-step-text">Price drops 40%</span>
+          </div>
+          <span className="demo-step-sep" aria-hidden="true">→</span>
+          <div className={`demo-step ${currentStep >= 2 ? 'is-active' : ''} ${currentStep > 2 ? 'is-done' : ''}`}>
+            <span className="demo-step-num">{currentStep > 2 ? '✓' : '2'}</span>
+            <span className="demo-step-text">Sentinel triggers</span>
+          </div>
+          <span className="demo-step-sep" aria-hidden="true">→</span>
+          <div className={`demo-step ${currentStep >= 3 ? 'is-active is-done' : ''}`}>
+            <span className="demo-step-num">{currentStep >= 3 ? '✓' : '3'}</span>
+            <span className="demo-step-text">Protected loan rescued; unprotected loan liquidated.</span>
+          </div>
+        </div>
+
+        {stepCaption && (
+          <div className="demo-caption">
+            <span className="pulse" />
+            <span>Step {currentStep}: <strong>{stepCaption}</strong></span>
+            {st.scenario && <span className="muted"> · Block {st.scenario.step} of {st.scenario.steps}</span>}
+          </div>
+        )}
       </div>
       <Checklist go={go} />
       <div className="stats">

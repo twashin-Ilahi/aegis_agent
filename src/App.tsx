@@ -159,7 +159,7 @@ export default function App() {
         </header>
 
         <main>
-          {tab === 'dashboard' && <Dashboard go={go} onOpenTour={() => setTourOpen(true)} />}
+          {tab === 'dashboard' && <Dashboard go={go} onOpenTour={() => setTourOpen(true)} live={live} setLive={setLive} />}
           {tab === 'agent' && <Agent />}
           {tab === 'yield' && <YieldTab />}
           {tab === 'activity' && <Activity />}
