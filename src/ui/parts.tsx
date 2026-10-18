@@ -200,6 +200,11 @@ const ICONS: Record<string, string> = {
     'M8 8a5 3 0 1 0 0-6 5 3 0 0 0 0 6zM3 5v4c0 1.7 2.2 3 5 3M3 9v4c0 1.7 2.2 3 5 3M16 21a5 3 0 1 0 0-6 5 3 0 0 0 0 6zM11 18v-4c0-1.7 2.2-3 5-3s5 1.3 5 3v4',
   pulse: 'M3 12h4l3-8 4 16 3-8h4',
   chain: 'M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7',
+  sparkles: 'M12 3v3m0 12v3m9-9h-3M6 12H3m14.5-6.5l-2.1 2.1M8.6 15.4l-2.1 2.1m11-2.1l-2.1-2.1M8.6 8.6L6.5 6.5',
+  tour: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
+  close: 'M18 6L6 18M6 6l12 12',
+  arrowRight: 'M5 12h14M12 5l7 7-7 7',
+  arrowLeft: 'M19 12H5M12 19l-7-7 7-7',
 };
 export function Icon({ name, size = 18 }: { name: keyof typeof ICONS | string; size?: number }) {
   return (

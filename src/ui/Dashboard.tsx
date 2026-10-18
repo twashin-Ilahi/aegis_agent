@@ -7,7 +7,7 @@ import { headroom } from '../core/policy';
 import { setupDemo } from '../core/scenarios';
 import { fmtTime, useEngine } from './store';
 
-export function Dashboard({ go }: { go: (tab: string) => void }) {
+export function Dashboard({ go, onOpenTour }: { go: (tab: string) => void; onOpenTour?: () => void }) {
   const e = useEngine();
   const st = e.state;
   if (!st.accountAddress || !st.policy) {
@@ -27,6 +27,11 @@ export function Dashboard({ go }: { go: (tab: string) => void }) {
                 Launch the demo (one click)
               </Btn>
               <Btn onClick={() => go('account')}>Set up manually</Btn>
+              {onOpenTour && (
+                <Btn kind="ghost" onClick={onOpenTour}>
+                  <Icon name="sparkles" size={13} /> Take a tour
+                </Btn>
+              )}
             </div>
             <p className="small muted">
               The demo creates a wallet, smart accounts, a loan, and a scoped session key on a simulated fork. No real funds.

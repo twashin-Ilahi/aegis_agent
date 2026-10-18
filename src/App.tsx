@@ -9,6 +9,7 @@ import { Badge, Btn, Icon, Logo } from './ui/parts';
 import { useAsync } from './ui/hooks';
 import { NotificationBell, ThemeButton, Toaster, useTheme } from './ui/chrome';
 import { fmtDateTime, useEngine, useRunLoop } from './ui/store';
+import { Tour } from './ui/Tour';
 
 const TABS = [
   ['dashboard', 'Dashboard', 'Overview of your positions and the agent'],
@@ -27,6 +28,7 @@ export default function App() {
     const h = window.location.hash.slice(1) as Tab;
     return TABS.some(([k]) => k === h) ? h : 'dashboard';
   });
+  const [tourOpen, setTourOpen] = useState(false);
   const [speed, setSpeed] = useState(1);
   const { live, setLive } = useRunLoop(Math.round(1200 / speed));
   const [theme, cycleTheme] = useTheme();
@@ -80,6 +82,10 @@ export default function App() {
           ))}
         </nav>
         <div className="side-foot">
+          <button className="tour-side-btn" onClick={() => setTourOpen(true)} title="Take an interactive tour of AegisAgent">
+            <Icon name="sparkles" size={14} />
+            <span>Take a Tour</span>
+          </button>
           <div className="env">
             <span className="env-dot" />
             <div>
@@ -114,6 +120,9 @@ export default function App() {
             {st.safeMode && <Badge tone="bad">SAFE MODE</Badge>}
           </div>
           <div className="controls">
+            <Btn kind="ghost" onClick={() => setTourOpen(true)} title="Interactive tour of all features">
+              <Icon name="sparkles" size={13} /> Tour
+            </Btn>
             <NotificationBell />
             <Btn kind={live ? 'primary' : 'default'} onClick={() => setLive(!live)} title="Advance one block every ~1.2 seconds">
               <Icon name="play" size={13} /> {live ? 'Live' : 'Run'}
@@ -146,7 +155,7 @@ export default function App() {
         </header>
 
         <main>
-          {tab === 'dashboard' && <Dashboard go={go} />}
+          {tab === 'dashboard' && <Dashboard go={go} onOpenTour={() => setTourOpen(true)} />}
           {tab === 'agent' && <Agent />}
           {tab === 'yield' && <YieldTab />}
           {tab === 'activity' && <Activity />}
@@ -154,6 +163,7 @@ export default function App() {
           {tab === 'lab' && <Lab />}
         </main>
 
+        {tourOpen && <Tour onClose={() => setTourOpen(false)} go={go} />}
         <Toaster />
         <footer>
           Research prototype on a simulated fork. Not financial advice. Do not connect real funds until the system has been reviewed by
