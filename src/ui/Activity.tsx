@@ -13,6 +13,7 @@ export function Activity() {
   const [filter, setFilter] = useState<'all' | 'success' | 'denied' | 'failed' | 'rejected_onchain'>('all');
   const [src, setSrc] = useState<'all' | 'sentinel' | 'executor' | 'intent' | 'scanner'>('all');
   const [open, setOpen] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const rows = st.actions
     .slice()
     .reverse()
@@ -52,6 +53,10 @@ export function Activity() {
         title="Activity log"
         right={
           <div className="row wrap">
+            <label className="check advanced-toggle">
+              <input type="checkbox" checked={showAdvanced} onChange={(ev) => setShowAdvanced(ev.target.checked)} />
+              <span className="small">Advanced</span>
+            </label>
             <select value={filter} onChange={(ev) => setFilter(ev.target.value as typeof filter)} aria-label="Status filter">
               <option value="all">All outcomes</option>
               <option value="success">Executed</option>
@@ -125,11 +130,22 @@ export function Activity() {
                                 {pr && (
                                   <dl className="kv small">
                                     <dt>Function</dt>
-                                    <dd>{selectorName(pr.proposal.selector)}</dd>
+                                    <dd>
+                                      {selectorName(pr.proposal.selector)}
+                                      {showAdvanced && <code> ({pr.proposal.selector})</code>}
+                                    </dd>
                                     <dt>Target</dt>
                                     <dd>
                                       <code>{short(pr.proposal.target, 8)}</code>
                                     </dd>
+                                    {showAdvanced && (
+                                      <>
+                                        <dt>Nonce</dt>
+                                        <dd>
+                                          <code>{e.world.chain(a.chainId).nonces[st.accountAddress?.toLowerCase() ?? ''] ?? 0}</code>
+                                        </dd>
+                                      </>
+                                    )}
                                     <dt>Params</dt>
                                     <dd>
                                       <code>{JSON.stringify(pr.proposal.params)}</code>

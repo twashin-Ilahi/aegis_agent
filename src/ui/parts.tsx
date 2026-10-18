@@ -62,7 +62,7 @@ export function Btn({
   );
 }
 
-export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+export function Field({ label, hint, children }: { label: ReactNode; hint?: string; children: ReactNode }) {
   return (
     <label className="field">
       <span>{label}</span>
@@ -224,24 +224,61 @@ export function Icon({ name, size = 18 }: { name: keyof typeof ICONS | string; s
   );
 }
 
+export function HfStatusBadge({
+  hf,
+  trigger = 1.15,
+  warn = 1.25,
+}: {
+  hf: number;
+  trigger?: number;
+  warn?: number;
+}) {
+  if (!Number.isFinite(hf)) return null;
+  const isAtRisk = hf < trigger;
+  const isWatch = !isAtRisk && hf < warn;
+  const label = isAtRisk ? 'At risk' : isWatch ? 'Watch' : 'Safe';
+  const tone = isAtRisk ? 'bad' : isWatch ? 'warn' : 'ok';
+  const icon = isAtRisk ? 'stop' : isWatch ? 'pulse' : 'shield';
+
+  return (
+    <span className={`hf-badge ${tone}`} title={`Status: ${label} · Trigger ${trigger} · Warn ${warn}`}>
+      <Icon name={icon} size={11} />
+      <span>{label}</span>
+    </span>
+  );
+}
+
+export function HelpTooltip({ text }: { text: string }) {
+  return (
+    <span className="help-tip" tabIndex={0} role="note" aria-label={text} title={text}>
+      ?
+    </span>
+  );
+}
+
 export function Stat({
   label,
   value,
   sub,
   tone,
   icon,
+  badge,
 }: {
   label: string;
   value: ReactNode;
   sub?: ReactNode;
   tone?: 'ok' | 'warn' | 'bad';
   icon?: string;
+  badge?: ReactNode;
 }) {
   return (
     <div className="stat">
       <div className="stat-l">
-        {icon && <Icon name={icon} size={14} />}
-        {label}
+        <span className="stat-l-main">
+          {icon && <Icon name={icon} size={14} />}
+          {label}
+        </span>
+        {badge}
       </div>
       <div className={`stat-v ${tone ?? ''}`}>{value}</div>
       {sub && <div className="stat-s">{sub}</div>}

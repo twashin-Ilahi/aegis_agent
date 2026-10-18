@@ -4,7 +4,7 @@ import { fmtUsd } from '../core/math';
 import { policySummary } from '../core/policy';
 import { selectorName } from '../core/contracts';
 import { setupDemo } from '../core/scenarios';
-import { Badge, Btn, Card, CopyButton, Field } from './parts';
+import { Badge, Btn, Card, CopyButton, Field, HelpTooltip } from './parts';
 import { useAsync } from './hooks';
 import { fmtDateTime, short, useEngine } from './store';
 import { ConfirmDialog } from './chrome';
@@ -17,6 +17,7 @@ export function Account() {
   const [faucetChain, setFaucetChain] = useState<ChainId>(42161);
   const [faucetAmount, setFaucetAmount] = useState(1000);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const hasWallet = !!st.owner;
   const hasAccount = !!st.accountAddress;
   const sessionOk = st.session?.status === 'active';
@@ -129,7 +130,12 @@ export function Account() {
         </Card>
 
         <Card
-          title="4. Grant a session key"
+          title={
+            <span>
+              4. Grant a session key
+              <HelpTooltip text="A temporary scoped key with spending limits and auto-expiry. It never touches your main wallet key and only allows approved transactions." />
+            </span>
+          }
           right={
             sessionOk ? <Badge tone="ok">Active</Badge> : st.session ? <Badge tone="bad">{st.session.status}</Badge> : <Badge>None</Badge>
           }
@@ -197,13 +203,22 @@ export function Account() {
         </Card>
 
         {st.policy && (
-          <Card title="On-chain allowlist (enforced by the account)">
+          <Card
+            title="On-chain allowlist (enforced by the account)"
+            right={
+              <label className="check advanced-toggle">
+                <input type="checkbox" checked={showAdvanced} onChange={(ev) => setShowAdvanced(ev.target.checked)} />
+                <span className="small">Advanced (selectors, nonces)</span>
+              </label>
+            }
+          >
             <table className="tbl small">
               <thead>
                 <tr>
                   <th>Chain</th>
                   <th>Contract</th>
-                  <th>Functions</th>
+                  <th>{showAdvanced ? 'Selectors (raw hex)' : 'Allowed functions'}</th>
+                  {showAdvanced && <th>Account nonce</th>}
                 </tr>
               </thead>
               <tbody>
@@ -215,7 +230,18 @@ export function Account() {
                       <br />
                       <code>{short(c.address, 6)}</code>
                     </td>
-                    <td>{c.selectors.map(selectorName).join(', ')}</td>
+                    <td>
+                      {showAdvanced ? (
+                        <code>{c.selectors.join(', ')}</code>
+                      ) : (
+                        c.selectors.map(selectorName).join(', ')
+                      )}
+                    </td>
+                    {showAdvanced && (
+                      <td>
+                        <code>{e.world.chain(c.chainId).nonces[st.accountAddress?.toLowerCase() ?? ''] ?? 0}</code>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

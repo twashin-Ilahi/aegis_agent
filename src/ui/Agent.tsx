@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { CHAIN_IDS, chainName, type ChainId, type Policy } from '../core/types';
-import { Badge, Btn, Card, Field } from './parts';
+import { Badge, Btn, Card, Field, HelpTooltip, HfStatusBadge } from './parts';
 import { useAsync } from './hooks';
 import { fmtTime, useEngine } from './store';
 
@@ -178,6 +178,7 @@ function PolicyEditor() {
       setMsg('Saved. Session key re-issued so the chain enforces the new caps.');
     } else setMsg('Saved as a new policy version.');
   };
+  const [advanced, setAdvanced] = useState(false);
   const hf = p.healthFactor;
   return (
     <Card title={`Policy · version ${base.version}`} right={dirty ? <Badge tone="warn">Unsaved</Badge> : <Badge tone="ok">Saved</Badge>}>
@@ -185,7 +186,13 @@ function PolicyEditor() {
         This mirrors what the chat creates. Every rule is enforced by plain code before anything is signed, and the on-chain session limits
         sit underneath as a second layer.
       </p>
-      <h4>Spending</h4>
+      <div className="row between">
+        <h4>Spending</h4>
+        <label className="check advanced-toggle">
+          <input type="checkbox" checked={advanced} onChange={(ev) => setAdvanced(ev.target.checked)} />
+          <span className="small">Advanced (bps)</span>
+        </label>
+      </div>
       <div className="form">
         <Field label="Per-action cap (USD)">
           <input
@@ -211,19 +218,44 @@ function PolicyEditor() {
             }
           />
         </Field>
-        <Field label="Max slippage (bps)" hint="50 = 0.5%">
-          <input
-            type="number"
-            min={0}
-            max={300}
-            value={p.maxSlippageBps}
-            onChange={(ev) =>
-              set((x) => {
-                x.maxSlippageBps = num(ev.target.value);
-              })
+        {advanced ? (
+          <Field label="Max slippage (bps)" hint="50 bps = 0.5% (technical basis points representation)">
+            <input
+              type="number"
+              min={0}
+              max={300}
+              value={p.maxSlippageBps}
+              onChange={(ev) =>
+                set((x) => {
+                  x.maxSlippageBps = num(ev.target.value);
+                })
+              }
+            />
+          </Field>
+        ) : (
+          <Field
+            label={
+              <span>
+                Max price slippage (%)
+                <HelpTooltip text="Maximum acceptable price change between quote and settlement. Lower protects against price impact." />
+              </span>
             }
-          />
-        </Field>
+            hint={`Current: ${(p.maxSlippageBps / 100).toFixed(2)}%`}
+          >
+            <input
+              type="number"
+              min={0}
+              max={3}
+              step={0.05}
+              value={(p.maxSlippageBps / 100).toFixed(2)}
+              onChange={(ev) =>
+                set((x) => {
+                  x.maxSlippageBps = Math.round(num(ev.target.value) * 100);
+                })
+              }
+            />
+          </Field>
+        )}
         <Field label="Gas ceiling (USD)" hint="Optional moves wait if gas is higher">
           <input
             type="number"
@@ -286,7 +318,15 @@ function PolicyEditor() {
           />
         </Field>
       </div>
-      <h4>Loan protection</h4>
+      <div className="row between">
+        <h4>Loan protection</h4>
+        <HelpTooltip text="Health factor measures loan collateral relative to debt. Below 1.0 triggers liquidation; Sentinel rescues positions before reaching that point." />
+      </div>
+      <p className="small muted">
+        Status indicators: <HfStatusBadge hf={hf.target + 0.1} trigger={hf.trigger} warn={hf.warn} /> above {hf.warn} ·{' '}
+        <HfStatusBadge hf={hf.trigger + 0.05} trigger={hf.trigger} warn={hf.warn} /> below {hf.warn} ·{' '}
+        <HfStatusBadge hf={hf.trigger - 0.05} trigger={hf.trigger} warn={hf.warn} /> below {hf.trigger}
+      </p>
       <div className="form">
         <Field label="Warn below">
           <input

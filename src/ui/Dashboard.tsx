@@ -3,7 +3,7 @@ import { BENCH } from '../core/engine';
 import { fmtHf, fmtUsd } from '../core/math';
 import { CHAIN_IDS, chainName } from '../core/types';
 import { isInFlight } from '../core/executor';
-import { Badge, Btn, Card, Empty, Gauge, Icon, Meter, Spark, Stat } from './parts';
+import { Badge, Btn, Card, Empty, Gauge, HelpTooltip, HfStatusBadge, Icon, Meter, Spark, Stat } from './parts';
 import { headroom } from '../core/policy';
 import { crash, restoreSnapshot, setupDemo } from '../core/scenarios';
 import { fmtTime, useEngine } from './store';
@@ -239,9 +239,7 @@ export function Dashboard({
                   <Badge tone="ok">Protected loan</Badge>
                   <div className="compare-title">Your Smart Account (with Sentinel)</div>
                 </div>
-                <Badge tone={wTone}>
-                  {protectedArb.healthFactor < p.healthFactor.trigger ? 'Rescued' : 'Safe'}
-                </Badge>
+                <HfStatusBadge hf={protectedArb.healthFactor} trigger={p.healthFactor.trigger} warn={p.healthFactor.warn} />
               </div>
               <Gauge
                 hf={protectedArb.healthFactor}
@@ -254,6 +252,7 @@ export function Dashboard({
                   label="Health factor"
                   value={fmtHf(protectedArb.healthFactor)}
                   tone={wTone}
+                  badge={<HfStatusBadge hf={protectedArb.healthFactor} trigger={p.healthFactor.trigger} warn={p.healthFactor.warn} />}
                   sub={`Trigger ${p.healthFactor.trigger} → target ${p.healthFactor.target}`}
                 />
                 <Stat
@@ -270,13 +269,7 @@ export function Dashboard({
                   <Badge tone={hasLiquidated ? 'bad' : 'neutral'}>Unprotected benchmark</Badge>
                   <div className="compare-title">Standard DeFi wallet (no agent)</div>
                 </div>
-                {hasLiquidated ? (
-                  <Badge tone="bad">Liquidated</Badge>
-                ) : (
-                  <Badge tone={bench.healthFactor < 1 ? 'bad' : bench.healthFactor < p.healthFactor.warn ? 'warn' : 'neutral'}>
-                    {bench.healthFactor < 1 ? 'Liquidating' : 'At risk'}
-                  </Badge>
-                )}
+                <HfStatusBadge hf={bench.healthFactor} trigger={p.healthFactor.trigger} warn={p.healthFactor.warn} />
               </div>
               <Gauge
                 hf={bench.healthFactor}
@@ -289,6 +282,7 @@ export function Dashboard({
                   label="Health factor"
                   value={bench.healthFactor < 1 ? 'Liquidated (< 1.0)' : fmtHf(bench.healthFactor)}
                   tone={bench.healthFactor < 1 ? 'bad' : bench.healthFactor < p.healthFactor.warn ? 'warn' : undefined}
+                  badge={<HfStatusBadge hf={bench.healthFactor} trigger={p.healthFactor.trigger} warn={p.healthFactor.warn} />}
                   sub={hasLiquidated ? 'Position liquidated with 5% bonus penalty' : 'Liquidation threshold 1.0'}
                 />
                 <Stat
@@ -312,7 +306,17 @@ export function Dashboard({
           label="Lowest health factor"
           value={Number.isFinite(worst) ? fmtHf(worst) : '–'}
           tone={Number.isFinite(worst) ? wTone : undefined}
-          sub={`Trigger ${p.healthFactor.trigger} · target ${p.healthFactor.target}`}
+          badge={
+            Number.isFinite(worst) ? (
+              <HfStatusBadge hf={worst} trigger={p.healthFactor.trigger} warn={p.healthFactor.warn} />
+            ) : null
+          }
+          sub={
+            <span>
+              Trigger {p.healthFactor.trigger} · target {p.healthFactor.target}
+              <HelpTooltip text="Health factor measures loan safety. Below 1.0 triggers liquidation; the Risk Sentinel automatically rescues your position before it reaches that point." />
+            </span>
+          }
         />
       </div>
       <div className="grid two">
@@ -332,7 +336,10 @@ export function Dashboard({
               <div className="gauges">
                 {loans.map((r) => (
                   <div key={r.id} className="gauge-card">
-                    <div className="gauge-title">{chainName(r.id)} · Aave V3</div>
+                    <div className="gauge-title">
+                      <span>{chainName(r.id)} · Aave V3</span>
+                      <HfStatusBadge hf={r.d.healthFactor} trigger={p.healthFactor.trigger} warn={p.healthFactor.warn} />
+                    </div>
                     <Gauge
                       hf={r.d.healthFactor}
                       trigger={p.healthFactor.trigger}
@@ -358,11 +365,17 @@ export function Dashboard({
               <div className="compare">
                 <div>
                   <b>Protected</b> <span className="muted">(your account)</span>
-                  <div className="big ok-t">{fmtHf(w.accountData(42161, acct).healthFactor)}</div>
+                  <div className="row">
+                    <div className="big ok-t">{fmtHf(w.accountData(42161, acct).healthFactor)}</div>
+                    <HfStatusBadge hf={w.accountData(42161, acct).healthFactor} trigger={p.healthFactor.trigger} warn={p.healthFactor.warn} />
+                  </div>
                 </div>
                 <div>
                   <b>Unprotected</b> <span className="muted">(identical loan, no agent)</span>
-                  <div className={`big ${bench.healthFactor < 1 ? 'bad-t' : ''}`}>{fmtHf(bench.healthFactor)}</div>
+                  <div className="row">
+                    <div className={`big ${bench.healthFactor < 1 ? 'bad-t' : ''}`}>{fmtHf(bench.healthFactor)}</div>
+                    <HfStatusBadge hf={bench.healthFactor} trigger={p.healthFactor.trigger} warn={p.healthFactor.warn} />
+                  </div>
                   <div className="small muted">
                     Debt {fmtUsd(bench.debtUsd)}
                     {st.liquidations.some((l) => l.benchmark) && <Badge tone="bad">liquidated</Badge>}
