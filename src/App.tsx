@@ -17,7 +17,7 @@ const TABS = [
   ['yield', 'Yield', 'Opportunities ranked after costs'],
   ['activity', 'Activity', 'Every decision, with the reason'],
   ['account', 'Account', 'Wallet, smart account and session key'],
-  ['lab', 'Lab', 'Crash scenarios, fault injection and security tests'],
+  ['lab', 'Crash demo & tests', 'Crash scenarios, fault injection and security tests'],
 ] as const;
 type Tab = (typeof TABS)[number][0];
 
@@ -76,6 +76,7 @@ export default function App() {
               onClick={() => go(k)}
             >
               <Icon name={k} />
+              {k === 'lab' && <span className="sr-only">Lab </span>}
               <span>{label}</span>
               {k === 'dashboard' && pending > 0 && <span className="pip">{pending}</span>}
             </button>

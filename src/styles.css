@@ -348,6 +348,42 @@ code {
   color: var(--text);
   padding: 2px 4px;
 }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+.compare-card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.compare-protected {
+  border-top: 3px solid var(--ok);
+}
+.compare-unprotected {
+  border-top: 3px solid var(--bad);
+}
+.compare-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 4px;
+}
+.compare-stats {
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
 .top {
   display: flex;
   gap: 16px;

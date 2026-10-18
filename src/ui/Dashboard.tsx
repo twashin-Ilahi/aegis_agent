@@ -132,6 +132,8 @@ export function Dashboard({
   const loans = rows.filter((r) => r.d.debtUsd > 0.01 || r.pos.collateralWeth > 0);
   const bench = w.accountData(42161, BENCH);
   const benchActive = w.position(42161, BENCH).collateralWeth > 0;
+  const arbRow = rows.find((r) => r.id === 42161);
+  const protectedArb = arbRow?.d ?? w.accountData(42161, acct);
   const snaps = st.snapshots.filter((s) => s.chainId === 42161).slice(-80);
   const totalIdle = rows.reduce((s, r) => s + r.b.USDC, 0);
   const totalEarning = rows.reduce((s, r) => s + r.pos.suppliedUsdc, 0);
@@ -220,6 +222,86 @@ export function Dashboard({
           </div>
         )}
       </div>
+
+      {benchActive && (
+        <Card
+          title="Protected vs Unprotected Loan Comparison"
+          right={
+            <Badge tone={hasLiquidated ? 'bad' : 'neutral'}>
+              {hasLiquidated ? 'Benchmark liquidated' : 'Arbitrum · Identical $7.5k initial debt'}
+            </Badge>
+          }
+        >
+          <div className="grid two">
+            <div className="compare-card compare-protected">
+              <div className="row between">
+                <div>
+                  <Badge tone="ok">Protected loan</Badge>
+                  <div className="compare-title">Your Smart Account (with Sentinel)</div>
+                </div>
+                <Badge tone={wTone}>
+                  {protectedArb.healthFactor < p.healthFactor.trigger ? 'Rescued' : 'Safe'}
+                </Badge>
+              </div>
+              <Gauge
+                hf={protectedArb.healthFactor}
+                trigger={p.healthFactor.trigger}
+                warn={p.healthFactor.warn}
+                target={p.healthFactor.target}
+              />
+              <div className="stats compare-stats">
+                <Stat
+                  label="Health factor"
+                  value={fmtHf(protectedArb.healthFactor)}
+                  tone={wTone}
+                  sub={`Trigger ${p.healthFactor.trigger} → target ${p.healthFactor.target}`}
+                />
+                <Stat
+                  label="Debt / Collateral"
+                  value={fmtUsd(protectedArb.debtUsd)}
+                  sub={`Collateral ${fmtUsd(protectedArb.collateralUsd)}`}
+                />
+              </div>
+            </div>
+
+            <div className="compare-card compare-unprotected">
+              <div className="row between">
+                <div>
+                  <Badge tone={hasLiquidated ? 'bad' : 'neutral'}>Unprotected benchmark</Badge>
+                  <div className="compare-title">Standard DeFi wallet (no agent)</div>
+                </div>
+                {hasLiquidated ? (
+                  <Badge tone="bad">Liquidated</Badge>
+                ) : (
+                  <Badge tone={bench.healthFactor < 1 ? 'bad' : bench.healthFactor < p.healthFactor.warn ? 'warn' : 'neutral'}>
+                    {bench.healthFactor < 1 ? 'Liquidating' : 'At risk'}
+                  </Badge>
+                )}
+              </div>
+              <Gauge
+                hf={bench.healthFactor}
+                trigger={p.healthFactor.trigger}
+                warn={p.healthFactor.warn}
+                target={p.healthFactor.target}
+              />
+              <div className="stats compare-stats">
+                <Stat
+                  label="Health factor"
+                  value={bench.healthFactor < 1 ? 'Liquidated (< 1.0)' : fmtHf(bench.healthFactor)}
+                  tone={bench.healthFactor < 1 ? 'bad' : bench.healthFactor < p.healthFactor.warn ? 'warn' : undefined}
+                  sub={hasLiquidated ? 'Position liquidated with 5% bonus penalty' : 'Liquidation threshold 1.0'}
+                />
+                <Stat
+                  label="Debt / Collateral"
+                  value={fmtUsd(bench.debtUsd)}
+                  sub={`Collateral ${fmtUsd(bench.collateralUsd)}`}
+                />
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       <Checklist go={go} />
       <div className="stats">
         <Stat icon="wallet" label="Net value" value={fmtUsd(netWorth)} sub="Idle + earning + collateral − debt" />
