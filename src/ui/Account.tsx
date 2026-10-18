@@ -23,7 +23,7 @@ export function Account() {
   const hasEth = typeof window !== 'undefined' && !!(window as { ethereum?: unknown }).ethereum;
 
   return (
-    <div className="grid two">
+    <div className="grid two" data-tour="account-setup">
       <div className="stack">
         <Card
           title="1. Connect a wallet"

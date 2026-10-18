@@ -34,6 +34,7 @@ export function Agent() {
 
   return (
     <div className="grid two">
+      <div data-tour="agent-chat">
       <Card
         title="Tell the agent your goal"
         right={
@@ -143,8 +144,11 @@ export function Agent() {
           </div>
         </details>
       </Card>
+      </div>
 
-      {st.policy ? <PolicyEditor key={st.policy.version} /> : <Card title="Policy">Create your account to edit the policy.</Card>}
+      <div data-tour="policy-editor">
+        {st.policy ? <PolicyEditor key={st.policy.version} /> : <Card title="Policy">Create your account to edit the policy.</Card>}
+      </div>
     </div>
   );
 }

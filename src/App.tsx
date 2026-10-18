@@ -58,7 +58,7 @@ export default function App() {
   return (
     <div className="shell">
       <aside className="side">
-        <div className="brand">
+        <div className="brand" data-tour="brand">
           <Logo size={38} />
           <div>
             <b>AegisAgent</b>
@@ -119,7 +119,7 @@ export default function App() {
             </Badge>
             {st.safeMode && <Badge tone="bad">SAFE MODE</Badge>}
           </div>
-          <div className="controls">
+          <div className="controls" data-tour="header-controls">
             <Btn kind="ghost" onClick={() => setTourOpen(true)} title="Interactive tour of all features">
               <Icon name="sparkles" size={13} /> Tour
             </Btn>

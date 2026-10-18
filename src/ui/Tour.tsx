@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Badge, Btn, Icon } from './parts';
 
 export interface TourStep {
@@ -7,9 +7,10 @@ export interface TourStep {
   badge: string;
   title: string;
   icon: string;
+  selector: string;
+  targetHint: string;
   body: ReactNode;
   tip?: string;
-  targetHint?: string;
 }
 
 export const TOUR_STEPS: TourStep[] = [
@@ -19,6 +20,8 @@ export const TOUR_STEPS: TourStep[] = [
     badge: 'Introduction',
     title: 'Welcome to AegisAgent',
     icon: 'sparkles',
+    selector: '[data-tour="brand"]',
+    targetHint: 'AegisAgent Security Core',
     body: (
       <>
         <p>
@@ -31,7 +34,7 @@ export const TOUR_STEPS: TourStep[] = [
         </p>
       </>
     ),
-    tip: 'Press the Right Arrow key (→) or click Next to explore every feature across all pages.',
+    tip: 'Press the Right Arrow key (→) or click Next to explore every feature with interactive UI callouts.',
   },
   {
     id: 'dashboard',
@@ -39,6 +42,8 @@ export const TOUR_STEPS: TourStep[] = [
     badge: 'Page 1 of 6 · Dashboard',
     title: 'Real-Time Health & Position Gauges',
     icon: 'dashboard',
+    selector: '[data-tour="dashboard-loans"], [data-tour="dashboard-hero"], [data-tour="dashboard-stats"]',
+    targetHint: 'Active Loans & Risk Gauges',
     body: (
       <>
         <p>
@@ -52,7 +57,6 @@ export const TOUR_STEPS: TourStep[] = [
       </>
     ),
     tip: 'Health Factor < 1.0 means liquidation. Aegis targets a safe recovery buffer (target 1.40) well before that happens.',
-    targetHint: 'Active Loans & Health Factor Gauges',
   },
   {
     id: 'agent',
@@ -60,6 +64,8 @@ export const TOUR_STEPS: TourStep[] = [
     badge: 'Page 2 of 6 · Agent',
     title: 'Conversational Intent Engine',
     icon: 'agent',
+    selector: '[data-tour="agent-chat"]',
+    targetHint: 'Conversational Intent Interface',
     body: (
       <>
         <p>
@@ -73,7 +79,6 @@ export const TOUR_STEPS: TourStep[] = [
       </>
     ),
     tip: 'Any standing policy limit changes (like daily caps or gas ceilings) always require your explicit confirmation.',
-    targetHint: 'Chat Input & Standing Rule Settings',
   },
   {
     id: 'yield',
@@ -81,6 +86,8 @@ export const TOUR_STEPS: TourStep[] = [
     badge: 'Page 3 of 6 · Yield',
     title: 'Net-Gain Cost-Aware Yield Scanner',
     icon: 'yield',
+    selector: '[data-tour="yield-scanner"]',
+    targetHint: 'Live DeFiLlama Yield Scanner',
     body: (
       <>
         <p>
@@ -93,7 +100,6 @@ export const TOUR_STEPS: TourStep[] = [
       </>
     ),
     tip: 'Moves only execute if the net yield beats costs and breaks even within your policy horizon (default: ≤ 14 days).',
-    targetHint: 'Ranked Yield Pools & Net-Gain Metrics',
   },
   {
     id: 'activity',
@@ -101,6 +107,8 @@ export const TOUR_STEPS: TourStep[] = [
     badge: 'Page 4 of 6 · Activity',
     title: 'Deterministic Policy Engine & Audit Trail',
     icon: 'activity',
+    selector: '[data-tour="activity-feed"]',
+    targetHint: 'Policy Checks & Audit Trail',
     body: (
       <>
         <p>
@@ -114,7 +122,6 @@ export const TOUR_STEPS: TourStep[] = [
       </>
     ),
     tip: 'Click on any transaction record to inspect the exact simulated checks and policy evaluations.',
-    targetHint: 'Decision Feed & Rule ID Auditing',
   },
   {
     id: 'account',
@@ -122,6 +129,8 @@ export const TOUR_STEPS: TourStep[] = [
     badge: 'Page 5 of 6 · Account',
     title: 'ERC-4337 Smart Account & Session Keys',
     icon: 'account',
+    selector: '[data-tour="account-setup"]',
+    targetHint: 'ERC-4337 Session Key Management',
     body: (
       <>
         <p>
@@ -135,7 +144,6 @@ export const TOUR_STEPS: TourStep[] = [
       </>
     ),
     tip: 'Private keys live in an isolated DemoKms and are never exposed in application state or logs.',
-    targetHint: 'Session Key Status, Permissions & Gas Reserves',
   },
   {
     id: 'lab',
@@ -143,6 +151,8 @@ export const TOUR_STEPS: TourStep[] = [
     badge: 'Page 6 of 6 · Lab',
     title: 'Crash Simulator & Adversarial Playground',
     icon: 'lab',
+    selector: '[data-tour="lab-demo-card"]',
+    targetHint: 'Market Crash Simulator & Fault Controls',
     body: (
       <>
         <p>
@@ -155,7 +165,6 @@ export const TOUR_STEPS: TourStep[] = [
       </>
     ),
     tip: 'Try clicking "1. Setup demo" followed by "−40%" in the Lab to see autonomous rescue in action.',
-    targetHint: 'Crash Testing, Fault Toggles & Adversarial Suite',
   },
   {
     id: 'controls',
@@ -163,6 +172,8 @@ export const TOUR_STEPS: TourStep[] = [
     badge: 'Top Navigation Controls',
     title: 'Simulation Clock & Instant Kill Switch',
     icon: 'play',
+    selector: '[data-tour="header-controls"]',
+    targetHint: 'Live Simulation & Emergency Stop',
     body: (
       <>
         <p>
@@ -185,9 +196,15 @@ export const TOUR_STEPS: TourStep[] = [
       </>
     ),
     tip: 'Keyboard navigation: 1–6 switch tabs, L toggles Live mode, and you can re-launch this tour anytime from the header!',
-    targetHint: 'Header Controls: Live, Speed, Step & Emergency Stop',
   },
 ];
+
+interface RectState {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
 
 export function Tour({
   onClose,
@@ -197,41 +214,94 @@ export function Tour({
   go: (tab: string) => void;
 }) {
   const [stepIndex, setStepIndex] = useState(0);
+  const [targetRect, setTargetRect] = useState<RectState | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
+  const current = TOUR_STEPS[stepIndex];
+
+  // Navigate tab when step changes
   useEffect(() => {
-    go(TOUR_STEPS[0].tab);
-  }, [go]);
+    go(current.tab);
+  }, [stepIndex, current.tab, go]);
 
+  // Find, scroll to, and measure target element
+  useEffect(() => {
+    let active = true;
+    let attempts = 0;
+
+    const measure = () => {
+      if (!active) return;
+      const el = document.querySelector(current.selector) as HTMLElement | null;
+      if (el) {
+        // Ensure element is visible
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        const rect = el.getBoundingClientRect();
+        setTargetRect({
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+        });
+      } else if (attempts < 12) {
+        attempts++;
+        setTimeout(measure, 60);
+      } else {
+        setTargetRect(null);
+      }
+    };
+
+    // Initial measure after short delay for tab switch transition
+    const timer = setTimeout(measure, 80);
+
+    const onReposition = () => {
+      const el = document.querySelector(current.selector) as HTMLElement | null;
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        setTargetRect({
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+        });
+      }
+    };
+
+    window.addEventListener('resize', onReposition);
+    window.addEventListener('scroll', onReposition, true);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+      window.removeEventListener('resize', onReposition);
+      window.removeEventListener('scroll', onReposition, true);
+    };
+  }, [stepIndex, current.selector]);
+
+  // Keyboard navigation
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
       else if (e.key === 'ArrowRight' || e.key === 'Enter') {
         if (stepIndex < TOUR_STEPS.length - 1) {
-          const next = stepIndex + 1;
-          setStepIndex(next);
-          go(TOUR_STEPS[next].tab);
+          setStepIndex(stepIndex + 1);
         } else {
           onClose();
         }
       } else if (e.key === 'ArrowLeft') {
         if (stepIndex > 0) {
-          const prev = stepIndex - 1;
-          setStepIndex(prev);
-          go(TOUR_STEPS[prev].tab);
+          setStepIndex(stepIndex - 1);
         }
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [stepIndex, onClose, go]);
+  }, [stepIndex, onClose]);
 
-  const current = TOUR_STEPS[stepIndex];
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === TOUR_STEPS.length - 1;
 
   const goTo = (index: number) => {
     setStepIndex(index);
-    go(TOUR_STEPS[index].tab);
   };
 
   const next = () => {
@@ -246,21 +316,114 @@ export function Tour({
     if (!isFirst) goTo(stepIndex - 1);
   };
 
+  // Compute dynamic card position relative to spotlight target
+  const computeCardStyle = (): { style: CSSProperties; placement: string } => {
+    if (!targetRect || window.innerWidth < 820) {
+      return {
+        style: {
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+        },
+        placement: 'center',
+      };
+    }
+
+    const cardWidth = 520;
+    const cardHeight = 360;
+    const padding = 16;
+    const spaceBelow = window.innerHeight - (targetRect.top + targetRect.height);
+    const spaceAbove = targetRect.top;
+    const spaceRight = window.innerWidth - (targetRect.left + targetRect.width);
+
+    // Prefer placing below target if room
+    if (spaceBelow >= cardHeight + padding) {
+      const left = Math.max(20, Math.min(window.innerWidth - cardWidth - 20, targetRect.left));
+      return {
+        style: {
+          position: 'fixed',
+          top: `${targetRect.top + targetRect.height + padding}px`,
+          left: `${left}px`,
+        },
+        placement: 'below',
+      };
+    }
+
+    // Otherwise place above target if room
+    if (spaceAbove >= cardHeight + padding) {
+      const left = Math.max(20, Math.min(window.innerWidth - cardWidth - 20, targetRect.left));
+      return {
+        style: {
+          position: 'fixed',
+          bottom: `${window.innerHeight - targetRect.top + padding}px`,
+          left: `${left}px`,
+        },
+        placement: 'above',
+      };
+    }
+
+    // Otherwise place to right if room
+    if (spaceRight >= cardWidth + padding) {
+      const top = Math.max(20, Math.min(window.innerHeight - cardHeight - 20, targetRect.top));
+      return {
+        style: {
+          position: 'fixed',
+          top: `${top}px`,
+          left: `${targetRect.left + targetRect.width + padding}px`,
+        },
+        placement: 'right',
+      };
+    }
+
+    // Fallback: centered
+    return {
+      style: {
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+      },
+      placement: 'center',
+    };
+  };
+
+  const { style: cardStyle, placement } = computeCardStyle();
+
   return (
     <div className="tour-portal" role="dialog" aria-modal="true" aria-label="Interactive Tour">
-      {/* Background overlay with pulse effect */}
-      <div className="tour-backdrop" onClick={onClose} />
+      {/* Fallback backdrop if element not yet measured */}
+      {!targetRect && <div className="tour-backdrop" onClick={onClose} />}
 
-      {/* Target hint highlight banner */}
-      {current.targetHint && (
-        <div className="tour-target-banner" key={`hint-${current.id}`}>
-          <span className="tour-target-dot" />
-          <span>Focused Area: <b>{current.targetHint}</b></span>
+      {/* Spotlight cutout callout animation directly over target element */}
+      {targetRect && (
+        <div
+          className="tour-spotlight"
+          style={{
+            top: `${Math.max(4, targetRect.top - 6)}px`,
+            left: `${Math.max(4, targetRect.left - 6)}px`,
+            width: `${targetRect.width + 12}px`,
+            height: `${targetRect.height + 12}px`,
+          }}
+        >
+          {/* Pulsing beacon border animation */}
+          <div className="tour-spotlight-pulse" />
+
+          {/* Floating beacon pill */}
+          <div className="tour-spotlight-badge">
+            <span className="tour-target-dot" />
+            <span>{current.targetHint}</span>
+          </div>
         </div>
       )}
 
-      {/* Main floating tour card */}
-      <div className="tour-card" key={current.id}>
+      {/* Main interactive tour card */}
+      <div
+        ref={cardRef}
+        className={`tour-card tour-placement-${placement}`}
+        style={cardStyle}
+        key={current.id}
+      >
         <header className="tour-card-header">
           <div className="tour-step-meta">
             <Badge tone="info">{current.badge}</Badge>
@@ -292,7 +455,7 @@ export function Tour({
         </div>
 
         <footer className="tour-card-footer">
-          {/* Progress dots */}
+          {/* Clickable progress dots */}
           <div className="tour-dots" role="tablist" aria-label="Tour Steps">
             {TOUR_STEPS.map((step, idx) => (
               <button

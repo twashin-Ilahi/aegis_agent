@@ -13,7 +13,7 @@ export function Dashboard({ go, onOpenTour }: { go: (tab: string) => void; onOpe
   if (!st.accountAddress || !st.policy) {
     return (
       <div className="stack">
-        <section className="hero">
+        <section className="hero" data-tour="dashboard-hero">
           <div>
             <Badge tone="info">Hackathon Topic F · autonomous risk management</Badge>
             <h2>Your DeFi yield and loan safety, on autopilot, within limits you set.</h2>
@@ -120,7 +120,7 @@ export function Dashboard({ go, onOpenTour }: { go: (tab: string) => void; onOpe
         />
       </div>
       <div className="grid two">
-        <div className="stack">
+        <div className="stack" data-tour="dashboard-loans">
           <Card
             title="Loan health"
             right={

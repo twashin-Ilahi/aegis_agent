@@ -35,7 +35,7 @@ export function Activity() {
   const failed = st.actions.filter((a) => a.status === 'failed' || a.status === 'rejected_onchain').length;
   const moved = done.reduce((s, a) => s + a.valueUsd, 0);
   return (
-    <div className="stack">
+    <div className="stack" data-tour="activity-feed">
       <div className="stats">
         <Stat icon="activity" label="Executed" value={done.length} sub={`${fmtUsd(moved)} total value`} />
         <Stat icon="shield" label="Rescues" value={done.filter((a) => a.rescue).length} sub="Sentinel actions that completed" tone="ok" />

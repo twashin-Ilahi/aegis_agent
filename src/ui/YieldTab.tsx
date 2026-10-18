@@ -19,7 +19,7 @@ export function YieldTab() {
   const rule = st.rules.yieldRule;
 
   return (
-    <div className="stack">
+    <div className="stack" data-tour="yield-scanner">
       <Card
         title="Yield scanner"
         right={

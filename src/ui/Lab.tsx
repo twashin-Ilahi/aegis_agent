@@ -25,7 +25,7 @@ export function Lab() {
 
   return (
     <div className="grid two">
-      <div className="stack">
+      <div className="stack" data-tour="lab-demo-card">
         <Card title="Demo scripts (mainnet-fork simulator)">
           <p className="small muted">
             Three scripts from the demo plan: setup (two identical loans), crash (price moves), reset (restore the saved snapshot). All
