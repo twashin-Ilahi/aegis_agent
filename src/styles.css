@@ -219,6 +219,38 @@ code {
   max-width: 1360px;
   width: 100%;
 }
+.sim-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  margin-top: 14px;
+  margin-bottom: 2px;
+  text-align: center;
+}
+.sim-banner-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--warn);
+  flex-shrink: 0;
+}
+.dash-hero {
+  padding: 2px 0 6px;
+}
+.dash-hero h2 {
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
 .top {
   display: flex;
   gap: 16px;

@@ -16,7 +16,7 @@ export function Dashboard({ go, onOpenTour }: { go: (tab: string) => void; onOpe
         <section className="hero" data-tour="dashboard-hero">
           <div>
             <Badge tone="info">Hackathon Topic F · autonomous risk management</Badge>
-            <h2>Your DeFi yield and loan safety, on autopilot, within limits you set.</h2>
+            <h2>An AI wallet that protects your loan, within limits you set.</h2>
             <p>
               Tell the agent what you want in plain English. It finds the best stablecoin yield across Arbitrum, Optimism and Ethereum, and
               watches your Aave loan around the clock. It never holds your main key, and every action passes a deterministic policy check
@@ -106,6 +106,9 @@ export function Dashboard({ go, onOpenTour }: { go: (tab: string) => void; onOpe
   const wTone = worst < p.healthFactor.trigger ? 'bad' : worst < p.healthFactor.warn ? 'warn' : 'ok';
   return (
     <div className="stack">
+      <div className="dash-hero">
+        <h2>An AI wallet that protects your loan, within limits you set.</h2>
+      </div>
       <Checklist go={go} />
       <div className="stats">
         <Stat icon="wallet" label="Net value" value={fmtUsd(netWorth)} sub="Idle + earning + collateral − debt" />

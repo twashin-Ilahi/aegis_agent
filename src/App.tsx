@@ -101,6 +101,10 @@ export default function App() {
       </aside>
 
       <div className="content">
+        <div className="sim-banner" role="status">
+          <span className="sim-banner-dot" aria-hidden="true" />
+          <span>Simulation: no real funds or real chain.</span>
+        </div>
         <header className="top">
           <div className="titles">
             <h1>{current[1]}</h1>
