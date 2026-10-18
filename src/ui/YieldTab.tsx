@@ -41,6 +41,20 @@ export function YieldTab() {
           Stablecoin pools on allowed chains, Aave V3 only, above your minimum TVL. Decisions use base APY (the lower of spot and 30-day
           mean). Reward APY is shown separately because reward tokens are volatile. Before acting, the live rate is re-read on-chain.
         </p>
+        {st.yields?.source !== 'live' && (
+          <div className="offline-notice" role="status">
+            <span className="sim-banner-dot" aria-hidden="true" />
+            <span>
+              <strong>Using offline snapshot:</strong> Rates are illustrative historical data. Click &ldquo;Refresh&rdquo; to query the live DeFiLlama API.
+            </span>
+          </div>
+        )}
+        {busy === 'scan' && (
+          <div className="offline-notice loading-notice" role="status">
+            <span className="pulse" />
+            <span>Fetching live yield rates from DeFiLlama API across Arbitrum, Optimism and Ethereum...</span>
+          </div>
+        )}
         <div className="scroll">
           <table className="tbl">
             <thead>
