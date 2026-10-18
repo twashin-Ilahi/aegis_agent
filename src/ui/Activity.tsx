@@ -123,6 +123,64 @@ export function Activity() {
                       {isOpen && (
                         <tr>
                           <td colSpan={7}>
+                            <div className="decision-trail" role="region" aria-label="Decision trail">
+                              <div className="trail-step trail-proposed">
+                                <div className="trail-step-header">
+                                  <span className="trail-dot ok" />
+                                  <span className="trail-num">1</span>
+                                  <b>AI proposed</b>
+                                </div>
+                                <div className="trail-body">
+                                  <div className="trail-title">{a.source.toUpperCase()} proposal</div>
+                                  <p className="small">{a.summary}</p>
+                                </div>
+                              </div>
+
+                              <span className="trail-arrow" aria-hidden="true">→</span>
+
+                              <div className="trail-step trail-checked">
+                                <div className="trail-step-header">
+                                  <span className="trail-dot ok" />
+                                  <span className="trail-num">2</span>
+                                  <b>Policy checked</b>
+                                </div>
+                                <div className="trail-body">
+                                  <div className="trail-title">
+                                    {pr?.decision?.checks ? `${pr.decision.checks.length} rules checked` : 'Deterministic checks'}
+                                  </div>
+                                  <p className="small muted">
+                                    {pr?.decision?.checks.some((c) => !c.pass)
+                                      ? 'Failed policy check'
+                                      : 'All policy rules verified'}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <span className="trail-arrow" aria-hidden="true">→</span>
+
+                              <div className={`trail-step ${a.status === 'success' ? 'trail-allowed' : 'trail-blocked'}`}>
+                                <div className="trail-step-header">
+                                  <span className={`trail-dot ${a.status === 'success' ? 'ok' : 'bad'}`} />
+                                  <span className="trail-num">3</span>
+                                  <b>{a.status === 'success' ? 'Allowed' : 'Blocked'}</b>
+                                </div>
+                                <div className="trail-body">
+                                  <div className="trail-title">
+                                    <Badge tone={a.status === 'success' ? 'ok' : 'bad'}>
+                                      {a.status === 'success' ? 'Allowed' : 'Blocked'}
+                                    </Badge>
+                                  </div>
+                                  <p className="small">
+                                    {a.status === 'success'
+                                      ? a.summary
+                                      : a.status === 'denied'
+                                        ? `${a.ruleId}: ${a.reason}`
+                                        : (a.error ?? a.reason)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
                             <div className="detail">
                               <div>
                                 <h4>Proposal ({a.source})</h4>
