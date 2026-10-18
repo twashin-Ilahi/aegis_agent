@@ -11,6 +11,7 @@ import { NotificationBell, ThemeButton, Toaster, useTheme } from './ui/chrome';
 import { fmtDateTime, useEngine, useRunLoop } from './ui/store';
 import { Tour } from './ui/Tour';
 import { GuideBook } from './ui/GuideBook';
+import { Analytics } from '@vercel/analytics/react';
 
 const TABS = [
   ['dashboard', 'Dashboard', 'Overview of your positions and the agent'],
@@ -197,6 +198,7 @@ export default function App() {
           />
         )}
         <Toaster />
+        <Analytics />
         <footer>
           Research prototype on a simulated fork. Not financial advice. Do not connect real funds until the system has been reviewed by
           security professionals.
