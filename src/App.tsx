@@ -10,6 +10,7 @@ import { useAsync } from './ui/hooks';
 import { NotificationBell, ThemeButton, Toaster, useTheme } from './ui/chrome';
 import { fmtDateTime, useEngine, useRunLoop } from './ui/store';
 import { Tour } from './ui/Tour';
+import { GuideBook } from './ui/GuideBook';
 
 const TABS = [
   ['dashboard', 'Dashboard', 'Overview of your positions and the agent'],
@@ -29,6 +30,7 @@ export default function App() {
     return TABS.some(([k]) => k === h) ? h : 'dashboard';
   });
   const [tourOpen, setTourOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [speed, setSpeed] = useState(1);
   const { live, setLive } = useRunLoop(Math.round(1200 / speed));
   const [theme, cycleTheme] = useTheme();
@@ -87,6 +89,10 @@ export default function App() {
             <Icon name="sparkles" size={14} />
             <span>Take a Tour</span>
           </button>
+          <button className="guide-side-btn" onClick={() => setGuideOpen(true)} title="Beginner's Guide Book: Learn crypto & AegisAgent from scratch">
+            <Icon name="book" size={14} />
+            <span>Guide Book</span>
+          </button>
           <div className="env">
             <span className="env-dot" />
             <div>
@@ -125,6 +131,9 @@ export default function App() {
             {st.safeMode && <Badge tone="bad">SAFE MODE</Badge>}
           </div>
           <div className="controls" data-tour="header-controls">
+            <Btn kind="ghost" onClick={() => setGuideOpen(true)} title="Beginner's Guide Book: Everything explained from scratch">
+              <Icon name="book" size={13} /> Guide
+            </Btn>
             <Btn kind="ghost" onClick={() => setTourOpen(true)} title="Interactive tour of all features">
               <Icon name="sparkles" size={13} /> Tour
             </Btn>
@@ -160,7 +169,15 @@ export default function App() {
         </header>
 
         <main>
-          {tab === 'dashboard' && <Dashboard go={go} onOpenTour={() => setTourOpen(true)} live={live} setLive={setLive} />}
+          {tab === 'dashboard' && (
+            <Dashboard
+              go={go}
+              onOpenTour={() => setTourOpen(true)}
+              onOpenGuide={() => setGuideOpen(true)}
+              live={live}
+              setLive={setLive}
+            />
+          )}
           {tab === 'agent' && <Agent />}
           {tab === 'yield' && <YieldTab />}
           {tab === 'activity' && <Activity />}
@@ -169,6 +186,16 @@ export default function App() {
         </main>
 
         {tourOpen && <Tour onClose={() => setTourOpen(false)} go={go} />}
+        {guideOpen && (
+          <GuideBook
+            onClose={() => setGuideOpen(false)}
+            onOpenTour={() => {
+              setGuideOpen(false);
+              setTourOpen(true);
+            }}
+            go={go}
+          />
+        )}
         <Toaster />
         <footer>
           Research prototype on a simulated fork. Not financial advice. Do not connect real funds until the system has been reviewed by

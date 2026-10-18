@@ -11,11 +11,13 @@ import { fmtTime, useEngine } from './store';
 export function Dashboard({
   go,
   onOpenTour,
+  onOpenGuide,
   live: _live,
   setLive,
 }: {
   go: (tab: string) => void;
   onOpenTour?: () => void;
+  onOpenGuide?: () => void;
   live?: boolean;
   setLive?: (v: boolean | ((p: boolean) => boolean)) => void;
 }) {
@@ -70,6 +72,11 @@ export function Dashboard({
               </Btn>
               <Btn onClick={() => setupDemo(e)}>Launch the demo (setup only)</Btn>
               <Btn onClick={() => go('account')}>Set up manually</Btn>
+              {onOpenGuide && (
+                <Btn kind="ghost" onClick={onOpenGuide} title="Beginner's Guide Book: Learn crypto & Aegis from scratch">
+                  <Icon name="book" size={13} /> Beginner&apos;s guide
+                </Btn>
+              )}
               {onOpenTour && (
                 <Btn kind="ghost" onClick={onOpenTour}>
                   <Icon name="sparkles" size={13} /> Take a tour
