@@ -95,25 +95,25 @@ $$\mathbf{\text{The AI proposes, code decides.}}$$
 
 ```mermaid
 flowchart TD
-    User([User / Browser UI]) -->|Plain English Directives| IntentEngine[Intent Engine\nStrict Zod Schema + Attack Firewall]
-    User -->|One-Click Actions| Dashboard[Dashboard & Lab Controls]
+    User(["User / Browser UI"]) -->|Plain English Directives| IntentEngine["Intent Engine<br/>Strict Zod Schema + Attack Firewall"]
+    User -->|One-Click Actions| Dashboard["Dashboard & Lab Controls"]
     
-    subgraph Layer 0: AI & Discovery Layer
-        IntentEngine -->|Structured Intent| CoreEngine[Aegis Core Engine]
-        YieldScanner[DeFiLlama Yield Scanner\nNet APY Math] -->|Yield Rebalance Proposal| CoreEngine
-        Sentinel[Risk Sentinel\n24/7 Block Watchdog] -->|Autonomous Rescue Proposal| CoreEngine
+    subgraph L0 ["Layer 0: AI & Discovery Layer"]
+        IntentEngine -->|Structured Intent| CoreEngine["Aegis Core Engine"]
+        YieldScanner["DeFiLlama Yield Scanner<br/>Net APY Math"] -->|Yield Rebalance Proposal| CoreEngine
+        Sentinel["Risk Sentinel<br/>24/7 Block Watchdog"] -->|Autonomous Rescue Proposal| CoreEngine
     end
     
-    subgraph Layer 1: Deterministic Policy Engine (Off-Chain Guard)
-        CoreEngine -->|Action Proposal| PolicyEngine[Policy Engine\n25+ Fail-Closed Deterministic Rules]
-        PolicyEngine -->|Denied / Confirm Required| AuditLog[Activity Log & Toast Feeds]
-        PolicyEngine -->|Approved| Executor[Cross-Chain State Machine Executor]
+    subgraph L1 ["Layer 1: Deterministic Policy Engine (Off-Chain Guard)"]
+        CoreEngine -->|Action Proposal| PolicyEngine["Policy Engine<br/>25+ Fail-Closed Deterministic Rules"]
+        PolicyEngine -->|Denied / Confirm Required| AuditLog["Activity Log & Toast Feeds"]
+        PolicyEngine -->|Approved| Executor["Cross-Chain State Machine Executor"]
     end
     
-    subgraph Layer 2: ERC-4337 Session Validator (On-Chain Guard)
-        Executor -->|Package UserOp| KMS[Isolated DemoKms\nSecp256k1 Session Key]
-        KMS -->|Sign UserOperation| SmartAccount[ERC-4337 Smart Account\nSession Key Validator Bytecode]
-        SmartAccount -->|Allowlist, Selector & Cap Check| Ledger[Simulated Mainnet Ledger\nArbitrum / Optimism / Ethereum]
+    subgraph L2 ["Layer 2: ERC-4337 Session Validator (On-Chain Guard)"]
+        Executor -->|Package UserOp| KMS["Isolated DemoKms<br/>Secp256k1 Session Key"]
+        KMS -->|Sign UserOperation| SmartAccount["ERC-4337 Smart Account<br/>Session Key Validator Bytecode"]
+        SmartAccount -->|Allowlist, Selector & Cap Check| Ledger["Simulated Mainnet Ledger<br/>Arbitrum / Optimism / Ethereum"]
     end
 
     Ledger -->|Position Metrics & Health Factors| Dashboard
