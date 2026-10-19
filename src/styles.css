@@ -1164,6 +1164,55 @@ input[type='checkbox'] {
   border-color: transparent;
   text-align: left;
 }
+.aegi-title-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.aegi-welcome-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: 0 4px 18px var(--accent-glow);
+  margin-bottom: 8px;
+}
+.aegi-welcome-avatar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  background: var(--panel2);
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.aegi-welcome-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.aegi-welcome-content strong {
+  font-size: 14px;
+  color: var(--fg);
+}
+.aegi-welcome-content p {
+  margin: 0;
+  line-height: 1.45;
+}
+.aegi-chat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  font-weight: 600;
+}
 .chips {
   display: flex;
   gap: 6px;

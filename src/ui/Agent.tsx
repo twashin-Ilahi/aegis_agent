@@ -3,6 +3,7 @@ import { CHAIN_IDS, chainName, type ChainId, type Policy } from '../core/types';
 import { Badge, Btn, Card, Field, HelpTooltip, HfStatusBadge } from './parts';
 import { useAsync } from './hooks';
 import { fmtTime, useEngine } from './store';
+import { AegisMascot } from './AegisMascot';
 
 const EXAMPLE_PROMPTS: { prompt: string; label?: string; isAttack?: boolean }[] = [
   { prompt: 'Keep my funds earning the highest stablecoin yield while keeping my liquidation risk low.' },
@@ -41,7 +42,14 @@ export function Agent() {
     <div className="grid two">
       <div data-tour="agent-chat">
       <Card
-        title="Tell the agent your goal"
+        title={
+          <div className="aegi-title-header">
+            <AegisMascot mood={busy ? 'alert' : 'info'} size={28} animate={false} />
+            <div>
+              <strong>Aegi · AI Assistant &amp; Expert Guide</strong>
+            </div>
+          </div>
+        }
         right={
           <Badge tone={st.settings.useLlm && e.llmKey ? 'info' : 'neutral'} title="Intent parsing mode">
             {st.settings.useLlm && e.llmKey ? `Language model · ${st.settings.llmModel}` : 'Offline parser'}
@@ -53,9 +61,20 @@ export function Agent() {
         )}
         <div className="chat">
           {st.chat.length === 0 && (
-            <p className="muted">
-              Try one of the examples below. I will explain what I understood and ask before activating any standing rule.
-            </p>
+            <div className="aegi-welcome-card">
+              <div className="aegi-welcome-avatar">
+                <AegisMascot mood="success" size={48} />
+              </div>
+              <div className="aegi-welcome-content">
+                <strong>Hi there! I&apos;m Aegi, your expert DeFi guide.</strong>
+                <p className="small muted">
+                  Tell me your financial goals in plain English (e.g. <i>&ldquo;Keep my loan above 1.4&rdquo;</i>). I will explain what I understood, simulate the actions, and ask for your approval before changing any standing policy.
+                </p>
+                <p className="small muted">
+                  Click any of the example prompt chips below to try out directives, or test my prompt-injection firewall!
+                </p>
+              </div>
+            </div>
           )}
           {st.chat.map((m) => {
             const rec = m.intentRecordId ? st.intents.find((i) => i.id === m.intentRecordId) : undefined;
@@ -66,7 +85,15 @@ export function Agent() {
             return (
               <div key={m.id} className={`msg ${m.role}`}>
                 <div className="meta">
-                  {m.role === 'user' ? 'You' : 'Aegis'} · {fmtTime(m.time)}
+                  {m.role === 'user' ? (
+                    'You'
+                  ) : (
+                    <span className="aegi-chat-label">
+                      <AegisMascot mood={rec?.flags.length ? 'warn' : 'info'} size={18} animate={false} />
+                      <strong>Aegi (Expert Guide)</strong>
+                    </span>
+                  )}{' '}
+                  · {fmtTime(m.time)}
                 </div>
                 <div className="bubble">{m.text}</div>
                 {pending && rec && (

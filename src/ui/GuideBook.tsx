@@ -226,9 +226,9 @@ const CHAPTERS: Chapter[] = [
           <div className="guide-page-row">
             <div className="guide-page-icon"><Icon name="agent" size={20} /></div>
             <div>
-              <strong>2. Agent (Key 2)</strong>
+              <strong>2. Aegi (Assistant) (Key 2)</strong>
               <p className="small">
-                The conversational brain. Talk to Aegis in plain English (e.g. <i>&ldquo;Keep my loan above 1.4&rdquo;</i>). Try the clickable prompt chips, including the <b>&ldquo;⚡ Try an attack&rdquo;</b> chip to watch our prompt-injection firewall block malicious prompts.
+                The conversational brain and home of <b>Aegi</b>, your AI assistant &amp; expert guide. Talk in plain English (e.g. <i>&ldquo;Keep my loan above 1.4&rdquo;</i>). Try the clickable prompt chips, including the <b>&ldquo;⚡ Try an attack&rdquo;</b> chip to watch our prompt-injection firewall block malicious prompts.
               </p>
             </div>
           </div>
@@ -314,8 +314,8 @@ const CHAPTERS: Chapter[] = [
             <div className="guide-step-item">
               <span className="guide-step-badge">3</span>
               <div>
-                <strong>Talk to the Agent</strong>
-                <p className="small">Click the <b>Agent</b> tab in the sidebar. Click one of the example prompt chips (e.g. <i>&ldquo;Keep my loan above 1.4&rdquo;</i>) and press Send to see how natural goals become validated policies.</p>
+                <strong>Talk to Aegi (Assistant)</strong>
+                <p className="small">Click the <b>Aegi (Assistant)</b> tab in the sidebar. Click one of the example prompt chips (e.g. <i>&ldquo;Keep my loan above 1.4&rdquo;</i>) and press Send to see how natural goals become validated policies.</p>
               </div>
             </div>
 

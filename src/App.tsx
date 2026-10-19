@@ -15,7 +15,7 @@ import { Analytics } from '@vercel/analytics/react';
 
 const TABS = [
   ['dashboard', 'Dashboard', 'Overview of your positions and the agent'],
-  ['agent', 'Agent', 'Tell the agent your goals and set your limits'],
+  ['agent', 'Aegi (Assistant)', 'Tell Aegi your goals in plain English and set your limits'],
   ['yield', 'Yield', 'Opportunities ranked after costs'],
   ['activity', 'Activity', 'Every decision, with the reason'],
   ['account', 'Account', 'Wallet, smart account and session key'],
@@ -79,6 +79,7 @@ export default function App() {
               onClick={() => go(k)}
             >
               <Icon name={k} />
+              {k === 'agent' && <span className="sr-only">Agent </span>}
               {k === 'lab' && <span className="sr-only">Lab </span>}
               <span>{label}</span>
               {k === 'dashboard' && pending > 0 && <span className="pip">{pending}</span>}
