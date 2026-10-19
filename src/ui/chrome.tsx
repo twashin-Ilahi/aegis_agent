@@ -1,6 +1,7 @@
 import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Btn, Icon } from './parts';
 import { engine, fmtTime, useEngine } from './store';
+import { AegisMascot } from './AegisMascot';
 
 /* ---------------- error boundary ---------------- */
 export class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -68,11 +69,17 @@ export function Toaster() {
     <div className="toasts" aria-live="polite" aria-atomic="false">
       {toasts.map((t) => (
         <div key={t.id} className={`toast ${t.level}`} role={t.level === 'alert' ? 'alert' : 'status'}>
-          <div>
-            <small>
-              {t.level === 'alert' ? 'Alert' : t.level === 'warn' ? 'Warning' : 'Done'} · {fmtTime(t.time)}
-            </small>
-            <div>{t.text}</div>
+          <div className="toast-mascot-badge">
+            <AegisMascot mood={t.level} size={34} />
+          </div>
+          <div className="toast-body">
+            <div className="toast-meta">
+              <span className="toast-author">Aegi</span>
+              <small>
+                {t.level === 'alert' ? 'Alert' : t.level === 'warn' ? 'Notice' : 'Done'} · {fmtTime(t.time)}
+              </small>
+            </div>
+            <div className="toast-text">{t.text}</div>
           </div>
           <button aria-label="Dismiss" onClick={() => setToasts((x) => x.filter((y) => y.id !== t.id))}>
             ×
@@ -182,11 +189,17 @@ export function NotificationBell() {
           <div className="bell-scrim" onClick={toggle} />
           <div className="bell-pop" role="dialog" aria-label="Notifications">
             <div className="bell-h">
-              <b>Notifications</b>
+              <div className="bell-title-wrap">
+                <AegisMascot mood="info" size={20} animate={false} />
+                <b>Notifications</b>
+              </div>
               <span className="muted small">{list.length} total</span>
             </div>
             {list.length === 0 ? (
-              <div className="empty">You are all caught up.</div>
+              <div className="empty bell-empty">
+                <AegisMascot mood="success" size={44} />
+                <span>You are all caught up.</span>
+              </div>
             ) : (
               <ul className="feed">
                 {list
