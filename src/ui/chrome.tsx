@@ -2,6 +2,7 @@ import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Btn, Icon } from './parts';
 import { engine, fmtTime, useEngine } from './store';
 import { AegisMascot } from './AegisMascot';
+import { useNotificationManager, type NotificationFilter } from './notificationStore';
 
 /* ---------------- error boundary ---------------- */
 export class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -168,21 +169,35 @@ export function ThemeButton({ mode, onClick }: { mode: ThemeMode; onClick: () =>
 
 /* ---------------- notification centre ---------------- */
 export function NotificationBell() {
-  const e = useEngine();
-  const list = e.state.notifications;
+  const notifs = useNotificationManager();
   const [open, setOpen] = useState(false);
-  const [readId, setReadId] = useState<string | null>(list.at(-1)?.id ?? null);
-  const idx = readId ? list.findIndex((n) => n.id === readId) : -1;
-  const unread = idx >= 0 ? list.length - idx - 1 : readId ? Math.min(list.length, 20) : list.length;
+  const [filter, setFilter] = useState<NotificationFilter>('all');
+
   const toggle = () => {
-    setReadId(list.at(-1)?.id ?? null); // opening or closing marks everything read
-    setOpen(!open);
+    setOpen((v) => !v);
   };
+
+  const displayed = notifs.notifications
+    .filter((n) => {
+      if (filter === 'unread') return !notifs.isRead(n.id);
+      if (filter === 'read') return notifs.isRead(n.id);
+      return true;
+    })
+    .slice(-40)
+    .reverse();
+
   return (
     <div className="bell-wrap">
-      <button className="bell" onClick={toggle} aria-label={`Notifications, ${unread} unread`} aria-expanded={open}>
+      <button
+        className="bell"
+        onClick={toggle}
+        aria-label={`Notifications, ${notifs.unreadCount} unread`}
+        aria-expanded={open}
+      >
         <Icon name="bell" size={16} />
-        {unread > 0 && !open && <span className="pip abs">{unread > 9 ? '9+' : unread}</span>}
+        {notifs.unreadCount > 0 && !open && (
+          <span className="pip abs">{notifs.unreadCount > 9 ? '9+' : notifs.unreadCount}</span>
+        )}
       </button>
       {open && (
         <>
@@ -190,26 +205,147 @@ export function NotificationBell() {
           <div className="bell-pop" role="dialog" aria-label="Notifications">
             <div className="bell-h">
               <div className="bell-title-wrap">
-                <AegisMascot mood="info" size={20} animate={false} />
+                <AegisMascot mood={notifs.unreadCount > 0 ? 'info' : 'success'} size={22} animate={false} />
                 <b>Notifications</b>
               </div>
-              <span className="muted small">{list.length} total</span>
+              <div className="bell-counts">
+                {notifs.unreadCount > 0 ? (
+                  <span className="notif-badge unread">{notifs.unreadCount} unread</span>
+                ) : (
+                  <span className="notif-badge all-read">All read</span>
+                )}
+                <span className="muted small">· {notifs.totalCount} total</span>
+              </div>
             </div>
-            {list.length === 0 ? (
+
+            <div className="notif-toolbar">
+              <div className="notif-tabs" role="tablist" aria-label="Notification filter">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === 'all'}
+                  className={`notif-tab ${filter === 'all' ? 'active' : ''}`}
+                  onClick={() => setFilter('all')}
+                >
+                  All ({notifs.totalCount})
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === 'unread'}
+                  className={`notif-tab ${filter === 'unread' ? 'active' : ''}`}
+                  onClick={() => setFilter('unread')}
+                >
+                  Unread ({notifs.unreadCount})
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === 'read'}
+                  className={`notif-tab ${filter === 'read' ? 'active' : ''}`}
+                  onClick={() => setFilter('read')}
+                >
+                  Read ({notifs.readCount})
+                </button>
+              </div>
+
+              <div className="notif-actions">
+                {notifs.unreadCount > 0 ? (
+                  <button
+                    type="button"
+                    className="notif-btn"
+                    onClick={notifs.markAllAsRead}
+                    title="Mark all notifications as read"
+                  >
+                    <Icon name="check" size={12} />
+                    <span>Read all</span>
+                  </button>
+                ) : notifs.totalCount > 0 ? (
+                  <button
+                    type="button"
+                    className="notif-btn"
+                    onClick={notifs.markAllAsUnread}
+                    title="Mark all notifications as unread"
+                  >
+                    <Icon name="mail" size={12} />
+                    <span>Unread all</span>
+                  </button>
+                ) : null}
+                {notifs.totalCount > 0 && (
+                  <button
+                    type="button"
+                    className="notif-btn notif-btn-clean"
+                    onClick={notifs.cleanAll}
+                    title="Clean all notifications"
+                  >
+                    <Icon name="trash" size={12} />
+                    <span>Clean all</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {displayed.length === 0 ? (
               <div className="empty bell-empty">
                 <AegisMascot mood="success" size={44} />
-                <span>You are all caught up.</span>
+                <span>
+                  {notifs.totalCount === 0
+                    ? 'You are all caught up. No notifications.'
+                    : filter === 'unread'
+                    ? 'No unread notifications.'
+                    : 'No read notifications.'}
+                </span>
+                {filter !== 'all' && notifs.totalCount > 0 && (
+                  <button
+                    type="button"
+                    className="btn ghost small notif-show-all-btn"
+                    onClick={() => setFilter('all')}
+                  >
+                    View all notifications
+                  </button>
+                )}
               </div>
             ) : (
-              <ul className="feed">
-                {list
-                  .slice(-25)
-                  .reverse()
-                  .map((n) => (
-                    <li key={n.id} className={n.level}>
-                      <span className="t">{fmtTime(n.time)}</span> {n.text}
+              <ul className="notif-list">
+                {displayed.map((n) => {
+                  const isRead = notifs.isRead(n.id);
+                  return (
+                    <li key={n.id} className={`notif-item ${n.level} ${isRead ? 'is-read' : 'is-unread'}`}>
+                      <span
+                        className={`notif-status-dot ${isRead ? 'dot-read' : 'dot-unread'}`}
+                        title={isRead ? 'Read' : 'Unread'}
+                        aria-hidden="true"
+                      />
+                      <div className="notif-content">
+                        <div className="notif-meta">
+                          <span className={`notif-pill notif-pill-${n.level}`}>{n.level}</span>
+                          <span className="t">{fmtTime(n.time)}</span>
+                        </div>
+                        <div className="notif-text">{n.text}</div>
+                      </div>
+                      <div className="notif-item-actions">
+                        <button
+                          type="button"
+                          className="notif-icon-btn"
+                          onClick={() => notifs.toggleRead(n.id)}
+                          title={isRead ? 'Mark as unread' : 'Mark as read'}
+                          aria-label={isRead ? 'Mark as unread' : 'Mark as read'}
+                        >
+                          <Icon name={isRead ? 'mail' : 'check'} size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          className="notif-icon-btn notif-clean-item"
+                          onClick={() => notifs.cleanOne(n.id)}
+                          title="Clean notification"
+                          aria-label="Clean notification"
+                        >
+                          <Icon name="close" size={13} />
+                        </button>
+                      </div>
                     </li>
-                  ))}
+                  );
+                })}
               </ul>
             )}
           </div>

@@ -7,6 +7,7 @@ import { Badge, Btn, Card, Empty, Gauge, HelpTooltip, HfStatusBadge, Icon, Meter
 import { headroom } from '../core/policy';
 import { crash, restoreSnapshot, setupDemo } from '../core/scenarios';
 import { fmtTime, useEngine } from './store';
+import { useNotificationManager, type NotificationFilter } from './notificationStore';
 
 export function Dashboard({
   go,
@@ -25,6 +26,8 @@ export function Dashboard({
   const st = e.state;
   const [demoRunning, setDemoRunning] = useState(false);
   const [demoStartTime, setDemoStartTime] = useState(0);
+  const notifs = useNotificationManager();
+  const [alertFilter, setAlertFilter] = useState<NotificationFilter>('all');
 
   const handleRunDemo = async () => {
     if (demoRunning || st.scenario) return;
@@ -545,19 +548,117 @@ export function Dashboard({
             )}
           </Card>
 
-          <Card title="Alerts and events" right={<Badge>{st.notifications.length}</Badge>}>
-            {st.notifications.length === 0 ? (
+          <Card
+            title="Alerts and events"
+            right={
+              <div className="card-notif-controls">
+                {notifs.unreadCount > 0 ? (
+                  <Badge tone="info">{notifs.unreadCount} unread</Badge>
+                ) : (
+                  <Badge tone="neutral">{notifs.totalCount} total</Badge>
+                )}
+                {notifs.unreadCount > 0 && (
+                  <button
+                    type="button"
+                    className="notif-tiny-btn"
+                    onClick={notifs.markAllAsRead}
+                    title="Mark all as read"
+                  >
+                    Read all
+                  </button>
+                )}
+                {notifs.totalCount > 0 && (
+                  <button
+                    type="button"
+                    className="notif-tiny-btn notif-tiny-clean"
+                    onClick={notifs.cleanAll}
+                    title="Clean all notifications"
+                  >
+                    Clean all
+                  </button>
+                )}
+              </div>
+            }
+          >
+            {notifs.totalCount > 0 && (
+              <div className="card-notif-filter-row">
+                <div className="notif-tabs" role="tablist" aria-label="Alerts filter">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={alertFilter === 'all'}
+                    className={`notif-tab ${alertFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setAlertFilter('all')}
+                  >
+                    All ({notifs.totalCount})
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={alertFilter === 'unread'}
+                    className={`notif-tab ${alertFilter === 'unread' ? 'active' : ''}`}
+                    onClick={() => setAlertFilter('unread')}
+                  >
+                    Unread ({notifs.unreadCount})
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={alertFilter === 'read'}
+                    className={`notif-tab ${alertFilter === 'read' ? 'active' : ''}`}
+                    onClick={() => setAlertFilter('read')}
+                  >
+                    Read ({notifs.readCount})
+                  </button>
+                </div>
+              </div>
+            )}
+            {notifs.totalCount === 0 ? (
               <Empty>Nothing yet.</Empty>
+            ) : notifs.notifications.filter((n) => (alertFilter === 'unread' ? !notifs.isRead(n.id) : alertFilter === 'read' ? notifs.isRead(n.id) : true)).length === 0 ? (
+              <Empty>{alertFilter === 'unread' ? 'No unread alerts.' : 'No read alerts.'}</Empty>
             ) : (
-              <ul className="feed">
-                {st.notifications
-                  .slice(-14)
+              <ul className="feed notif-feed">
+                {notifs.notifications
+                  .filter((n) => (alertFilter === 'unread' ? !notifs.isRead(n.id) : alertFilter === 'read' ? notifs.isRead(n.id) : true))
+                  .slice(-16)
                   .reverse()
-                  .map((n) => (
-                    <li key={n.id} className={n.level}>
-                      <span className="t">{fmtTime(n.time)}</span> {n.text}
-                    </li>
-                  ))}
+                  .map((n) => {
+                    const isRead = notifs.isRead(n.id);
+                    return (
+                      <li key={n.id} className={`${n.level} ${isRead ? 'is-read' : 'is-unread'}`}>
+                        <div className="feed-notif-content">
+                          <span
+                            className={`notif-status-dot ${isRead ? 'dot-read' : 'dot-unread'}`}
+                            title={isRead ? 'Read' : 'Unread'}
+                            aria-hidden="true"
+                          />
+                          <span className="t">{fmtTime(n.time)}</span>
+                          <span className="feed-notif-text">{n.text}</span>
+                        </div>
+                        <div className="feed-notif-actions">
+                          <button
+                            type="button"
+                            className="notif-icon-btn"
+                            onClick={() => notifs.toggleRead(n.id)}
+                            title={isRead ? 'Mark as unread' : 'Mark as read'}
+                            aria-label={isRead ? 'Mark as unread' : 'Mark as read'}
+                          >
+                            <Icon name={isRead ? 'mail' : 'check'} size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            className="notif-icon-btn notif-clean-item"
+                            onClick={() => notifs.cleanOne(n.id)}
+                            title="Clean alert"
+                            aria-label="Clean alert"
+                          >
+                            <Icon name="close" size={12} />
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
               </ul>
             )}
           </Card>
